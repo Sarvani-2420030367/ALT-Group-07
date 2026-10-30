@@ -1,13 +1,36 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Prism from "prismjs";
+import "prismjs/themes/prism-tomorrow.css";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-jsx";
 import "./App.css";
 
 const API = "http://127.0.0.1:8000";
 
 export default function App() {
+    const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem("codesense-theme");
+    return savedTheme ? savedTheme === "dark" : true;
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-theme",
+      darkMode ? "dark" : "light"
+    );
+
+    localStorage.setItem(
+      "codesense-theme",
+      darkMode ? "dark" : "light"
+    );
+  }, [darkMode]);
   const [repo, setRepo] = useState("");
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState("explain");
+  const [activePage, setActivePage] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [indexed, setIndexed] = useState(false);
   const [result, setResult] = useState(null);
@@ -91,23 +114,53 @@ export default function App() {
 
         <div className="side-label">WORKSPACE</div>
 
-        <button className="nav-item active">
-          ⌘ &nbsp; Code Assistant
-        </button>
-
         <button
-          className={`nav-item ${mode === "search" ? "active" : ""}`}
-          onClick={() => setMode("search")}
-        >
-          ◉ &nbsp; Semantic Search
-        </button>
+  className={`nav-item ${activePage === "dashboard" ? "active" : ""}`}
+  onClick={() => setActivePage("dashboard")}
+>
+  &nbsp; Dashboard
+</button>
 
-        <button
-          className={`nav-item ${mode === "explain" ? "active" : ""}`}
-          onClick={() => setMode("explain")}
-        >
-          ✧ &nbsp; Code Explanation
-        </button>
+<button
+  className={`nav-item ${activePage === "repository" ? "active" : ""}`}
+  onClick={() => setActivePage("repository")}
+>
+   &nbsp; Repository Explorer
+</button>
+
+<button
+  className={`nav-item ${activePage === "assistant" ? "active" : ""}`}
+  onClick={() => {
+    setActivePage("assistant");
+    setMode("explain");
+  }}
+>
+   &nbsp; AI Code Assistant
+</button>
+
+<button
+  className={`nav-item ${activePage === "search" ? "active" : ""}`}
+  onClick={() => {
+    setActivePage("search");
+    setMode("search");
+  }}
+>
+   &nbsp; Semantic Search
+</button>
+
+<button
+  className={`nav-item ${activePage === "quality" ? "active" : ""}`}
+  onClick={() => setActivePage("quality")}
+>
+   &nbsp; Code Quality
+</button>
+
+<button
+  className={`nav-item ${activePage === "settings" ? "active" : ""}`}
+  onClick={() => setActivePage("settings")}
+>
+   &nbsp; Settings
+</button>
 
         <div className="sidebar-bottom">
           <div className="status-dot" />
@@ -120,22 +173,304 @@ export default function App() {
         <header className="topbar">
           <div>
             <div className="breadcrumb">
-              Workspace / <b>AI Assistant</b>
-            </div>
+  Workspace / <b>
+    {activePage === "dashboard"
+      ? "Dashboard"
+      : activePage === "repository"
+      ? "Repository Explorer"
+      : activePage === "assistant"
+      ? "AI Code Assistant"
+      : activePage === "search"
+      ? "Semantic Search"
+      : activePage === "quality"
+      ? "Code Quality"
+      : "Settings"}
+  </b>
+</div>
 
-            <h1>Your code, understood.</h1>
-
+           <h1>
+  {activePage === "dashboard"
+    ? "Dashboard"
+    : activePage === "repository"
+    ? "Repository Explorer"
+    : activePage === "assistant"
+    ? "AI Code Assistant"
+    : activePage === "search"
+    ? "Semantic Search"
+    : activePage === "quality"
+    ? "Code Quality & Security"
+    : "Settings"}
+</h1>
             <p>
-              Search your repository and understand code with AI.
+              {activePage === "dashboard"
+                ? "Overview of your code intelligence workspace."
+                : activePage === "repository"
+                ? "Index and manage the repository used by your copilot."
+                : activePage === "assistant"
+                ? "Ask questions and get explanations grounded in your code."
+                : activePage === "search"
+                ? "Find relevant code using natural-language queries."
+                : activePage === "quality"
+                ? "Review code maintainability, security, and dependencies."
+                : "Manage your workspace preferences and configuration."}
             </p>
           </div>
 
-          <div className="local-badge">
-            <span />
-            LOCAL ENVIRONMENT
+                    <div className="header-actions">
+            <button
+              className="theme-toggle"
+              onClick={() => setDarkMode((previous) => !previous)}
+              aria-label={`Switch to ${darkMode ? "light" : "dark"} mode`}
+              title={`Switch to ${darkMode ? "light" : "dark"} mode`}
+            >
+              {darkMode ? "☀️ " : "🌙 "}
+            </button>
+
+            <div className="local-badge">
+              <span />
+              LOCAL ENVIRONMENT
+            </div>
           </div>
         </header>
+        {activePage === "quality" && (
+  <section className="quality-page">
+    <div className="page-intro">
+      <span className="section-label">CODE ANALYSIS</span>
+      <h2>Code Quality & Security</h2>
+      <p>
+        Review your codebase for maintainability, potential security
+        risks, and opportunities for improvement.
+      </p>
+    </div>
 
+    <div className="quality-grid">
+      <div className="panel quality-card">
+        <span className="card-label">Code Quality</span>
+        <h3>Code Analysis</h3>
+        <p>
+          Evaluate code structure, readability, and maintainability.
+        </p>
+        <span className="feature-status">Analysis not configured</span>
+      </div>
+
+      <div className="panel quality-card">
+        <span className="card-label">Security</span>
+        <h3>Security Review</h3>
+        <p>
+          Identify potential vulnerabilities and unsafe coding patterns.
+        </p>
+        <span className="feature-status">Analysis not configured</span>
+      </div>
+
+      <div className="panel quality-card">
+        <span className="card-label">Dependencies</span>
+        <h3>Dependency Review</h3>
+        <p>
+          Review project dependencies and identify outdated packages.
+        </p>
+        <span className="feature-status">Analysis not configured</span>
+      </div>
+
+      <div className="panel quality-card">
+        <span className="card-label">Recommendations</span>
+        <h3>Improvement Suggestions</h3>
+        <p>
+          Explore opportunities to improve code reliability and maintainability.
+        </p>
+        <span className="feature-status">Analysis not configured</span>
+      </div>
+    </div>
+  </section>
+)}
+        {activePage === "settings" && (
+  <section className="settings-page">
+    <div className="page-intro">
+      <span className="section-label">PREFERENCES</span>
+      <h2>Workspace Settings</h2>
+      <p>Configure your development environment and manage your CodeSense AI preferences.</p>
+    </div>
+
+    <div className="settings-grid">
+      <div className="panel settings-card">
+        <div className="settings-card-header">
+          <div>
+            <span className="card-label">DISPLAY</span>
+            <h3>Appearance</h3>
+          </div>
+        </div>
+        <p>Choose the appearance that works best for you.</p>
+        <div className="settings-control">
+          <div>
+            <strong>Interface theme</strong>
+            <small>Current theme: {darkMode ? "Dark" : "Light"}</small>
+          </div>
+          <button type="button" className="secondary-button" onClick={() => setDarkMode((previous) => !previous)}>
+            Switch Theme
+          </button>
+        </div>
+      </div>
+
+      <div className="panel settings-card">
+        <div className="settings-card-header">
+          <div>
+            <span className="card-label">SOURCE CODE</span>
+            <h3>Repository Configuration</h3>
+          </div>
+        </div>
+        <p>Manage the local repository used for indexing and code search.</p>
+        <div className="settings-control">
+          <div>
+            <strong>Repository status</strong>
+            <small>{indexed ? "Repository indexed in this session" : "Repository not indexed"}</small>
+          </div>
+          <button type="button" className="secondary-button" onClick={() => setActivePage("repository")}>
+            Open Repository
+          </button>
+        </div>
+      </div>
+
+      <div className="panel settings-card">
+        <div className="settings-card-header">
+          <div>
+            <span className="card-label">AI CONFIGURATION</span>
+            <h3>AI Services</h3>
+          </div>
+        </div>
+        <p>CodeSense AI uses your configured local backend for code intelligence.</p>
+        <div className="settings-info-row">
+          <span>Backend endpoint</span>
+          <code>127.0.0.1:8000</code>
+        </div>
+        <div className="settings-info-row">
+          <span>Explanation model</span>
+          <strong>Qwen 2.5 Coder</strong>
+        </div>
+        <div className="settings-info-row">
+          <span>Code retrieval</span>
+          <strong>Sentence-BERT / ChromaDB</strong>
+        </div>
+      </div>
+
+      <div className="panel settings-card">
+        <div className="settings-card-header">
+          <div>
+            <span className="card-label">QUICK ACCESS</span>
+            <h3>Developer Workspace</h3>
+          </div>
+        </div>
+        <p>Open the tools you use most often.</p>
+        <div className="settings-actions">
+          <button type="button" className="secondary-button" onClick={() => { setActivePage("assistant"); setMode("explain"); }}>
+            Open AI Assistant
+          </button>
+          <button type="button" className="secondary-button" onClick={() => { setActivePage("search"); setMode("search"); }}>
+            Open Semantic Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+{activePage === "dashboard" && (
+  <section className="page-intro">
+    <h2>Welcome to CodeSense AI </h2>
+    <p>
+      Your intelligent workspace for understanding, searching,
+      and analyzing code.
+    </p>
+  </section>
+)}
+  
+    {activePage === "dashboard" && (
+  <>
+    
+
+    <section className="dashboard-cards">
+      <div className="panel dashboard-card">
+        <div className="card-heading">
+          <span className="card-label">Repository Status</span>
+          <span className={`status-indicator ${indexed ? "status-ready" : "status-pending"}`}>
+            {indexed ? "Indexed" : "Not Indexed"}
+          </span>
+        </div>
+        <h3>{indexed ? "Ready to Explore" : "Awaiting Indexing"}</h3>
+        <p>
+          {indexed
+            ? "Your repository is ready for code search and AI-assisted explanations."
+            : "Index your repository to enable code search and AI-assisted explanations."}
+        </p>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setActivePage("repository")}
+        >
+          Open Repository
+        </button>
+      </div>
+
+      <div className="panel dashboard-card">
+        <div className="card-heading">
+          <span className="card-label">AI Code Assistant</span>
+        </div>
+        <h3>Understand Your Code</h3>
+        <p>
+          Ask questions about your codebase and receive explanations
+          with relevant source snippets.
+        </p>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setActivePage("assistant");
+            setMode("explain");
+          }}
+        >
+          Open Assistant
+        </button>
+      </div>
+
+      <div className="panel dashboard-card">
+        <div className="card-heading">
+          <span className="card-label">Semantic Search</span>
+        </div>
+        <h3>Find Relevant Code</h3>
+        <p>
+          Search your repository using natural-language queries
+          instead of exact keywords.
+        </p>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setActivePage("search");
+            setMode("search");
+          }}
+        >
+          Search Repository
+        </button>
+      </div>
+
+      <div className="panel dashboard-card">
+        <div className="card-heading">
+          <span className="card-label">Code Quality</span>
+        </div>
+        <h3>Review Your Codebase</h3>
+        <p>
+          Access the code quality and security analysis workspace.
+        </p>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setActivePage("quality")}
+        >
+          Open Analysis
+        </button>
+      </div>
+    </section>
+  </>
+)}
+{activePage === "dashboard" && (
         <section className="stats">
           <div className="stat-card">
             <span className="stat-icon purple">⌘</span>
@@ -158,8 +493,12 @@ export default function App() {
             <small>Local AI model</small>
           </div>
         </section>
-
-        <section className="workspace">
+)}
+        {(activePage === "repository" ||
+  activePage === "assistant" ||
+  activePage === "search") && (
+    <section className="workspace">
+      {activePage === "repository" && (
           <div className="panel repository-panel">
             <div className="panel-heading">
               <div>
@@ -201,7 +540,8 @@ export default function App() {
                 : "Waiting for repository"}
             </div>
           </div>
-
+)}
+{(activePage === "assistant" || activePage === "search") && (
           <div className="panel assistant-panel">
             <div className="panel-heading">
               <div>
@@ -217,21 +557,57 @@ export default function App() {
             </p>
 
             <div className="mode-switch">
+  <button
+    className={mode === "explain" ? "selected" : ""}
+    onClick={() => {
+      setMode("explain");
+      setActivePage("assistant");
+    }}
+  >
+    Explain Code
+  </button>
+
+  <button
+    className={mode === "search" ? "selected" : ""}
+    onClick={() => {
+      setMode("search");
+      setActivePage("search");
+    }}
+  >
+    Search Code
+  </button>
+</div>
+
+                            <div className="example-prompts">
+              <span>TRY ASKING</span>
+
               <button
-                className={mode === "explain" ? "selected" : ""}
-                onClick={() => setMode("explain")}
+                type="button"
+                onClick={() =>
+                  setQuery("Explain the overall architecture of this project")
+                }
               >
-                ✧ Explain code
+                Explain project architecture
               </button>
 
               <button
-                className={mode === "search" ? "selected" : ""}
-                onClick={() => setMode("search")}
+                type="button"
+                onClick={() =>
+                  setQuery("Find the main API endpoints in this repository")
+                }
               >
-                ⌕ Search code
+                Find API endpoints
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setQuery("Explain how error handling works in this codebase")
+                }
+              >
+                Explain error handling
               </button>
             </div>
-
             <form onSubmit={askCopilot}>
               <textarea
                 value={query}
@@ -256,8 +632,10 @@ export default function App() {
               </div>
             </form>
           </div>
+          )}
         </section>
-
+)}
+{(activePage === "assistant" || activePage === "search") && (
         <section className="panel results-panel">
           <div className="panel-heading">
             <div>
@@ -297,9 +675,29 @@ export default function App() {
             </div>
           )}
 
-          {result?.type === "explain" && (
+                    {result?.type === "explain" && (
             <div className="response-content">
               <h3>✧ AI Explanation</h3>
+
+              <div className="response-toolbar">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(
+                        result.data.explanation || ""
+                      );
+                    } catch (err) {
+                      setError(
+                        "Could not copy the explanation. Try selecting and copying it manually."
+                      );
+                    }
+                  }}
+                >
+                  📋 Copy Explanation
+                </button>
+              </div>
 
               <p>{result.data.explanation}</p>
 
@@ -315,7 +713,7 @@ export default function App() {
             </div>
           )}
         </section>
-
+)}
         <footer>
           CodeSense AI · AI Developer Copilot
           <span>Built for developers, powered by local AI.</span>
@@ -326,6 +724,9 @@ export default function App() {
 }
 
 function SourceList({ sources = [] }) {
+    useEffect(() => {
+    Prism.highlightAll();
+  }, [sources]);
   if (!sources.length) {
     return (
       <p className="muted">
@@ -350,9 +751,51 @@ function SourceList({ sources = [] }) {
             </small>
           </summary>
 
-          <pre>{source.code}</pre>
+          <div className="code-toolbar">
+  <button
+    type="button"
+    className="copy-code-button"
+    onClick={async () => {
+      try {
+        await navigator.clipboard.writeText(source.code || "");
+      } catch (err) {
+        console.error("Could not copy code:", err);
+      }
+    }}
+  >
+    📋 Copy
+  </button>
+</div>
+
+<pre>
+  <code
+    className={`language-${getLanguage(source.file)}`}
+  >
+    {source.code}
+  </code>
+</pre>
         </details>
       ))}
     </div>
   );
+  function getLanguage(filename = "") {
+  const extension = filename.split(".").pop().toLowerCase();
+
+  const languages = {
+    py: "python",
+    java: "java",
+    js: "javascript",
+    jsx: "jsx",
+    ts: "javascript",
+    tsx: "jsx",
+    html: "markup",
+    xml: "markup",
+    css: "css",
+    json: "javascript",
+    c: "clike",
+    cpp: "clike",
+  };
+
+  return languages[extension] || "javascript";
+}
 }
